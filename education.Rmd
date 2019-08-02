@@ -25,8 +25,6 @@ knitr::opts_chunk$set(echo=FALSE)
 
 The education section includes some JCPS data from the Kentucky Department of Education. JCPS data is not comparable to other peer cities, so the graphs included for those metrics compare JCPS to other Kentucky school districts.
 
-<br>
-
 # Early Care and Education
 
 <br>
@@ -39,6 +37,11 @@ knitr::include_graphics("images/kready_trendline.png")
 ```
 
 <br>
+
+***
+
+<br>
+
 
 ## Children Ages 3 & 4 Enrolled in Preschool {.tabset}
 
@@ -77,12 +80,21 @@ knitr::include_graphics("images/ccr_trendline.png")
 
 <br>
 
+***
+
+<br>
+
+
 ## Graduation Rate {.tabset}
 
 ### Trendline
 ```{r}
 knitr::include_graphics("images/graduation_trendline.png")
 ```
+
+<br>
+
+***
 
 <br>
 
@@ -93,10 +105,20 @@ knitr::include_graphics("images/graduation_trendline.png")
 knitr::include_graphics("images/naep_math_trendline.png")
 ```
 
+<br>
+
+***
+
+<br>
+
 ### Reading
 ```{r}
 knitr::include_graphics("images/naep_reading_trendline.png")
 ```
+
+<br>
+
+***
 
 <br>
 
@@ -126,10 +148,22 @@ knitr::include_graphics("images/act_composite_trendline.png")
 knitr::include_graphics("images/bach_plus_ranking.png")
 ```
 
+<br>
+
+***
+
+<br>
+
 #### Trendline
 ```{r}
 knitr::include_graphics("images/bach_plus_trendline.png")
 ```
+
+<br>
+
+***
+
+<br>
 
 ### Young Adult (25-34) {.tabset}
 
@@ -138,10 +172,20 @@ knitr::include_graphics("images/bach_plus_trendline.png")
 knitr::include_graphics("images/bach_plus_young_ranking.png")
 ```
 
+<br>
+
+***
+
+<br>
+
 #### Trendline
 ```{r}
 knitr::include_graphics("images/bach_plus_young_trendline.png")
 ```
+
+<br>
+
+***
 
 <br>
 
@@ -154,10 +198,22 @@ knitr::include_graphics("images/bach_plus_young_trendline.png")
 knitr::include_graphics("images/assoc_plus_ranking.png")
 ```
 
+<br>
+
+***
+
+<br>
+
 #### Trendline
 ```{r}
 knitr::include_graphics("images/assoc_plus_trendline.png")
 ```
+
+<br>
+
+***
+
+<br>
 
 ### Young Adult (25-34) {.tabset}
 
@@ -166,12 +222,23 @@ knitr::include_graphics("images/assoc_plus_trendline.png")
 knitr::include_graphics("images/assoc_plus_young_ranking.png")
 ```
 
+<br>
+
+***
+
+<br>
+
 #### Trendline
 ```{r}
 knitr::include_graphics("images/assoc_plus_young_trendline.png")
 ```
 
 <br>
+
+***
+
+<br>
+
 
 ## Graduate Degrees {.tabset}
 

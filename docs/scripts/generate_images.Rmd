@@ -311,7 +311,7 @@ graph_trendline("kready", path = "../images/")
 
 
 # PRESCHOOL
-png("../images/enrolled_3_4_ranking.png", 3000, 2400, res = 200)
+png("../images/enrolled_3_4_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "enrolled_3_4",
             plot_title = "Children Ages 3 and 4 Enrolled in Preschool, 2017",
@@ -361,7 +361,7 @@ create_ylimits <- function(vector1, vector2) {
 these_ylimits <- create_ylimits(education_MSA$assoc_plus, education_MSA$assoc_plus_young)
 
 # ASSOC PLUS
-png("../images/assoc_plus_ranking.png", 3000, 2400, res = 200)
+png("../images/assoc_plus_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "assoc_plus",
             plot_title = "Associate Degrees or Higher, 2017",
@@ -383,7 +383,7 @@ glpgraphs:::add_arrow("../images/assoc_plus_trendline.png", "education", "kyrace
 
 
 # ASSOC PLUS YOUNG
-png("../images/assoc_plus_young_ranking.png", 3000, 2400, res = 200)
+png("../images/assoc_plus_young_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "assoc_plus_young",
             plot_title = "Associate Degrees or Higher, Young Adults, 2017",
@@ -407,7 +407,7 @@ glpgraphs:::add_arrow("../images/assoc_plus_young_trendline.png", "education", "
 these_ylimits <- create_ylimits(education_MSA$bach_plus, education_MSA$bach_plus_young)
 
 # BACH PLUS
-png("../images/bach_plus_ranking.png", 3000, 2400, res = 200)
+png("../images/bach_plus_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "bach_plus",
             plot_title = "Bachelor's Degrees or Higher, 2017",
@@ -429,7 +429,7 @@ glpgraphs:::add_arrow("../images/bach_plus_trendline.png", "education", "kyrace"
 
 
 # BACH PLUS YOUNG
-png("../images/bach_plus_young_ranking.png", 3000, 2400, res = 200)
+png("../images/bach_plus_young_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "bach_plus_young",
             plot_title = "Bachelor's Degrees or Higher, Young Adults, 2017",
@@ -452,7 +452,7 @@ glpgraphs:::add_arrow("../images/bach_plus_young_trendline.png", "education", "k
 these_ylimits <- create_ylimits(education_MSA$grad, education_MSA$grad_young)
 
 # GRAD
-png("../images/grad_ranking.png", 3000, 2400, res = 200)
+png("../images/grad_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "grad",
             plot_title = "Graduate Degrees, 2017",
@@ -474,7 +474,7 @@ glpgraphs:::add_arrow("../images/grad_trendline.png", "education", "kyrace")
 
 
 # GRAD PLUS
-png("../images/grad_young_ranking.png", 3000, 2400, res = 200)
+png("../images/grad_young_ranking.png", 3360, 2400, res = 200)
 ranking_gli(education_MSA_17,
             "grad_young",
             plot_title = "Graduate Degrees or Higher, Young Adults, 2017",
