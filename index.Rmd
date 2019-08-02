@@ -1,0 +1,39 @@
+---
+title: "Welcome"
+output: html_document
+---
+
+<style type="text/css">
+h1,h2 {
+  font-size: 0px;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Museo Sans 300";
+}
+body{
+  font-family: "Museo Sans 300";
+    font-size: 15px;
+}
+</style>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+# Welcome
+
+This site presents data from the Greater Louisville Project. The peer cities included in this study are Indianapolis, Memphis, Nashville, and Omaha.
+
+You can navigate between deep drivers by clicking between tabs at the top of the page. There is a table of contents to the left, and you can click between different types of graphs using the blue highlighted words like these:
+
+## Tab example {.tabset}
+
+### Graph 1
+```{r}
+knitr::include_graphics("images/bach_plus_ranking.png")
+```
+
+### Graph 2
+```{r}
+knitr::include_graphics("images/bach_plus_trendline.png")
+```

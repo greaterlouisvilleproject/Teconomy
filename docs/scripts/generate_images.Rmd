@@ -1,0 +1,500 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(magrittr)
+library(readr)
+
+library(showtext)
+library(classInt)
+library(ggthemes)
+library(scales)
+library(magick)
+library(ggrepel)
+
+library(RColorBrewer)
+library(leaflet)
+library(htmlwidgets)
+library(htmltools)
+
+library(glptools)
+library(glpdata)
+library(glpgraphs)
+
+setwd("../../../")
+
+showtext_auto()
+font_add("Museo Sans 300", "MuseoSans_300.otf")
+font_add("Museo Sans 300 Italic", "MuseoSans_300_Italic.otf")
+```
+
+```{r ranking}
+ranking_gli <- function(df, var,
+                    year = NULL, sex = "total", race = "total",
+                    order = "Descending", peers = "Current",
+                    plot_title = "", y_title = "Percent", caption_text = "",
+                    text = TRUE, subtitle_text = "", sigfig = 3, accuracy = 0.1,
+                    label_function = NULL, alternate_text = NULL){
+
+  # Copy variable var to a new column for use with the '$' operator
+  var <- dplyr:::tbl_at_vars(df, vars(!!enquo(var)))
+  df$var <- df[[var]]
+
+  # Filter to sex, race, and year
+  if ("sex" %in% names(df)) df <- df[df$sex == sex,]
+  if ("race" %in% names(df)) df <- df[df$race == race,]
+  if("year" %in% names(df)) {
+    if (is.null(year)) year <- max(years_in_df(df, var))
+    df <- df[df$year %in% year,]
+
+    if (length(year) > 1) {
+      df %<>%
+        group_by(FIPS) %>%
+        summarise(var = mean(var, na.rm = TRUE)) %>%
+        ungroup()
+    }
+  }
+
+  # Add peer data if not already present
+  if (df_type(df) == "county" & "current" %not_in% names(df)) df %<>% pull_peers_FIPS()
+  if (df_type(df) == "MSA" &    "current" %not_in% names(df)) df %<>% pull_peers_MSA()
+
+  # Filter to peer parameter
+  if (peers %in% c("current", "Current"))   df %<>% filter(current == 1)
+  if (peers %in% c("baseline", "Baseline")) df %<>% filter(baseline == 1)
+
+  # Sort according to order parameter
+  if (order %in% c("descending", "Descending")) df %<>% arrange(desc(var))
+  if (order %in% c("ascending", "Ascending"))   df %<>% arrange(var)
+
+  # Create numbered city labels for left side of graph
+  df %<>%
+    mutate(
+      rank = row_number(),
+      names = paste0(rank, ". ", city))
+
+  # Set bar colors
+  breaks <- classIntervals(df$var, 3, style = "jenks")
+  df$color <- NA
+  df$color[df$var <= breaks$brks[2]] <- "green"
+  df$color[df$var > breaks$brks[2] & df$var <= breaks$brks[3]] <- "yellow"
+  df$color[df$var > breaks$brks[3]] <- "red"
+
+  # Create numeric labels
+  if (!is.null(label_function)) {
+    label_text <- df$var %>% signif(sigfig) %>% label_function()
+  } else if (y_title == "Dollars") {
+    label_text <- df$var %>% signif(sigfig) %>% dollar(accuracy = accuracy, scale = .001, suffix = "k")
+  } else if (str_detect(y_title, "Percent")) {
+    label_text <- df$var %>% signif(sigfig) %>% percent(accuracy = accuracy, scale = 1, suffix = "%")
+  } else {
+    label_text <- df$var %>% signif(sigfig) %>% comma(accuracy = accuracy)
+  }
+
+  # Set text format, highlight and italicise Louisville text, highlight Louisville bar
+  df$textfont <- "Museo Sans 300"
+  df$textfont[df$city == "Louisville"] <- "Museo Sans 300 Italic"
+
+  df$textcolor <- "black"
+  df$textcolor[df$city == "Louisville"] <- "#00a9b7"
+
+  df$linecolor <- "white"
+  df$linecolor[df$city == "Louisville"] <- "#00a9b7"
+
+  df$text_alignment <- 1.1
+  if (!is.null(alternate_text)) if (18 %not_in% alternate_text) df$text_alignment[df$rank %in% alternate_text] <- -0.1
+
+  ### PLOT GRAPH
+
+  # Initial plot
+  p <- ggplot(data = df,
+              aes(x = factor(names, levels = rev(unique(names))),
+                  y = var))
+
+  p <- p + guides(fill = FALSE)
+
+  # Add bars
+  p <- p +
+    geom_bar(stat  = "identity",
+             color = rev(df$linecolor),
+             fill = "#FFD59E",
+             size  = 2,
+             width = 0.75) +
+    coord_flip() +
+    theme_tufte()
+
+  #if (order %in% c("ascending", "Ascending"))   p <- p + scale_fill_manual(values = c("#96ca4f", "#db2834", "#ffd600"))
+  #if (order %in% c("descending", "Descending")) p <- p + scale_fill_manual(values = c("#db2834", "#96ca4f", "#ffd600"))
+
+
+  # Add features
+  title_scale <- min(1, 48 / nchar(plot_title))
+
+  p <- p + theme(text = element_text(family = "Museo Sans 300"),
+                 plot.title = element_text(size = 74 * title_scale, hjust = 0.5, margin = margin(b = 20, unit = "pt")),
+                 axis.text.y = element_text(hjust = 0, #family = rev(df$textfont),
+                                            size = 80, color = rev(df$textcolor)),
+                 axis.title.x = element_text(size = 80),
+                 axis.ticks = element_blank(),
+                 axis.text.x = element_blank(),
+                 plot.caption = element_text(size = 36, lineheight = 0.5))
+
+  if(subtitle_text != ""){
+    p <- p + theme(plot.subtitle = element_text(hjust = 0.5, size = 48)) +
+             labs(subtitle = subtitle_text)
+  }
+
+  # Add numeric labels to bars based on text parameter
+  if (y_title != "" & text) {
+    p <- p + geom_text(aes(label = label_text, hjust = text_alignment),
+                       size = 30,
+                       family = "Museo Sans 300")
+  }
+
+  # Add vertical line to the left side of the bars based on the h_line parameter
+  if (min(df$var) < 0) p <- p + geom_hline(yintercept = 0, linetype = "longdash", size = 2)
+
+  # Add remaining text
+  p <- p + labs(title = plot_title, y = y_title,
+                x = "", caption = caption_text)
+  p
+}
+```
+
+```{r trend}
+trend_gli <- function(df, var,
+                  cat = "", rollmean = 1,
+                  plot_title = "", y_title = "Percent",
+                  caption_text = "", subtitle_text = "",
+                  peers = "current", ylimits = "",
+                  shading = F, pctiles = T,
+                  include_hispanic = F, include_asian = T, order = "descending",
+                  xmin = "", xmax = "",
+                  zero_start = F, raw_code = "", label_function = NULL, axis_function = NULL) {
+  
+  df$value <- df[[var]]
+  
+  # Filter data to peer set, race, sex, or other categories.
+  # Create category names.
+  df %<>% filter(race == "total", sex == "total")
+
+  if(xmin == "" | is.na(xmin)) xmin <- min(years_in_df(df, var))
+  if(xmax == "" | is.na(xmax)) xmax <- max(years_in_df(df, var))
+  
+  peer_mean <- df %>%
+    filter(city != "Louisville") %>%
+    group_by(year) %>%
+    summarise(value = mean(value))
+  
+  peer_mean$city <- "Peer Mean"
+  
+  blanks <- data.frame(city = c(" ", "  "), stringsAsFactors = FALSE)
+  
+  df %<>% bind_rows(peer_mean) %>% bind_rows(blanks)
+
+  # Calculate break settings
+  output <- glptools:::tl_break_settings(df, xmin, xmax, 1)
+
+  major_break_settings <- output[["major_break_settings"]]
+  minor_break_settings <- output[["minor_break_settings"]]
+
+  line_types <- c(" ", "Louisville", "Peer Mean", "  ", 
+                  "Indianapolis", "Memphis", "Nashville", "Omaha")
+  
+  df %<>% mutate(city = factor(city,
+                               levels = line_types,
+                               labels = line_types,
+                               ordered = TRUE))
+  
+  # Initial plot
+  p <- ggplot(data = df,
+              aes(x = year, y = value,
+                  group = city,
+                  colour = city,
+                  label = value,
+                  alpha = city))
+  
+  txt_scale <- 1.5
+
+  p <- p +
+    geom_point(size = 2 * txt_scale) +
+    geom_line(size = 1  * txt_scale)
+
+  # Axis limits
+  p %<>% glptools:::tl_limits(df, xmin, xmax, 
+                              ylimits, major_break_settings, minor_break_settings,
+                              y_title, label_function = NULL, axis_function = NULL)
+
+
+  # Add style
+  txt_scale <- 1.5
+  title_scale <- min(1, 48 / nchar(plot_title))
+
+  #adjust theme
+  p <- p + theme_bw(
+    base_size = 11 * txt_scale,
+                    base_family = "Museo Sans 300")
+
+  p <- p + theme(
+    legend.title     = element_blank(),
+    legend.position  = "top",
+    legend.margin    = margin(t = 0.4 * txt_scale, unit = "cm"),
+    legend.spacing.x = unit(0.4 * txt_scale, "cm"),
+    legend.text      = element_text(size = 30 * txt_scale,
+                                    margin = margin(b = 0.2 * txt_scale, t = 0.2 * txt_scale, unit = "cm")),
+
+    axis.text    = element_text(size = 24 * txt_scale),
+    axis.title   = element_text(size = 30 * txt_scale),
+    axis.title.x = element_text(margin = margin(t = 0.3 * txt_scale, unit = "cm")),
+    axis.title.y = element_text(margin = margin(r = 0.3 * txt_scale, unit = "cm")),
+
+    plot.title = element_text(size = 42 * txt_scale * title_scale,
+                              hjust = .5,
+                              margin = margin(b = 0.4 * txt_scale, unit = "cm")),
+
+    plot.caption = element_text(size = 18 * txt_scale,
+                                lineheight = 0.5))
+
+
+  #add labels
+  p <- p + labs(
+    title   = plot_title,
+    x       = "Year",
+    y       = y_title,
+    caption = caption_text)
+
+  #add subtitle if included
+  if(subtitle_text != ""){
+    p <- p +
+      theme(plot.subtitle = element_text(hjust = 0.5, size = 24 * txt_scale)) +
+      labs(subtitle = subtitle_text)
+  }
+  
+    #add color and line types
+  #caluculate number of categories
+  pal <- brewer_pal("qual", "Set1")(4)
+
+  pal <- c("black", "#00a9b7", "black", "black", pal)
+  
+  p <- p +
+    scale_colour_manual(
+      name = "Cities",
+      values = pal,
+      labels = line_types) + 
+    scale_alpha_manual(
+      name = "Cities",
+      values = c(0, 1, 1, 0, 0.6, 0.6, 0.6, 0.6),
+      labels = line_types)
+  
+  p <- p + guides(colour = guide_legend(label.position = "top"), 
+                  alpha = guide_legend(label.position = "top"))
+
+  p <- p + guides(colour = guide_legend(label.position = "top", byrow = TRUE,
+                                        keywidth = unit(6 * txt_scale, "lines")))
+  p
+}
+```
+
+```{r education}
+MSAs <- c("26900", "31140", "32820", "34980", "36540")
+
+education_MSA    %<>% filter(MSA %in% MSAs) %>% pull_peers()
+education_MSA_17 %<>% filter(MSA %in% MSAs) %>% pull_peers(add_info = T)
+
+# KINDERGARTEN READIESS
+graph_trendline("kready", path = "../images/")
+
+
+# PRESCHOOL
+png("../images/enrolled_3_4_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "enrolled_3_4",
+            plot_title = "Children Ages 3 and 4 Enrolled in Preschool, 2017",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT023, B14003")
+dev.off()
+
+png("../images/enrolled_3_4_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "enrolled_3_4",
+          plot_title = "Children Ages 3 and 4 Enrolled in Preschool",
+          subtitle = "5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT023, B14003")
+dev.off()
+glpgraphs:::add_arrow("../images/enrolled_3_4_trendline.png", "education", "kyrace")
+
+
+# CCR
+graph_trendline("ccr", path = "../images/")
+
+
+# GRADUATION
+graph_trendline("graduation", path = "../images/")
+
+
+# NAEP READING
+graph_trendline("naep_reading", path = "../images/")
+
+
+# NAEP MATH
+graph_trendline("naep_math", path = "../images/")
+
+
+# ACT
+graph_trendline("act_composite", path = "../images/")
+
+create_ylimits <- function(vector1, vector2) {
+  variable <- c(vector1, vector2)
+
+  border_space = (max(variable, na.rm = TRUE) - min(variable, na.rm = TRUE)) * 0.1
+  
+  ylimits <- c(min(variable, na.rm = TRUE) - border_space,
+               max(variable, na.rm = TRUE) + border_space)
+}
+
+these_ylimits <- create_ylimits(education_MSA$assoc_plus, education_MSA$assoc_plus_young)
+
+# ASSOC PLUS
+png("../images/assoc_plus_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "assoc_plus",
+            plot_title = "Associate Degrees or Higher, 2017",
+            subtitle_text = "Ages 25-64",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/assoc_plus_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "assoc_plus",
+          ylimits = these_ylimits,
+          plot_title = "Associate Degrees or Higher",
+          subtitle_text = "Ages 25-64, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/assoc_plus_trendline.png", "education", "kyrace")
+
+
+# ASSOC PLUS YOUNG
+png("../images/assoc_plus_young_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "assoc_plus_young",
+            plot_title = "Associate Degrees or Higher, Young Adults, 2017",
+            subtitle_text = "Ages 25-34",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/assoc_plus_young_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "assoc_plus_young",
+          ylimits = these_ylimits,
+          plot_title = "Associate Degrees or Higher, Young Adults",
+          subtitle_text = "Ages 25-34, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/assoc_plus_young_trendline.png", "education", "kyrace")
+
+
+these_ylimits <- create_ylimits(education_MSA$bach_plus, education_MSA$bach_plus_young)
+
+# BACH PLUS
+png("../images/bach_plus_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "bach_plus",
+            plot_title = "Bachelor's Degrees or Higher, 2017",
+            subtitle_text = "Ages 25-34",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/bach_plus_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "bach_plus",
+          ylimits = these_ylimits,
+          plot_title = "Bachelor's Degrees or Higher",
+          subtitle_text = "Ages 25-64, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/bach_plus_trendline.png", "education", "kyrace")
+
+
+# BACH PLUS YOUNG
+png("../images/bach_plus_young_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "bach_plus_young",
+            plot_title = "Bachelor's Degrees or Higher, Young Adults, 2017",
+            subtitle_text = "Ages 25-34",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/bach_plus_young_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "bach_plus_young",
+          ylimits = these_ylimits,
+          plot_title = "Bachelor's Degrees or Higher, Young Adults",
+          subtitle_text = "Ages 25-34, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/bach_plus_young_trendline.png", "education", "kyrace")
+
+these_ylimits <- create_ylimits(education_MSA$grad, education_MSA$grad_young)
+
+# GRAD
+png("../images/grad_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "grad",
+            plot_title = "Graduate Degrees, 2017",
+            subtitle_text = "Ages 25-64",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/grad_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "grad",
+          ylimits = these_ylimits,
+          plot_title = "Graduate Degrees or Higher",
+          subtitle_text = "Ages 25-64, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/grad_trendline.png", "education", "kyrace")
+
+
+# GRAD PLUS
+png("../images/grad_young_ranking.png", 3000, 2400, res = 200)
+ranking_gli(education_MSA_17,
+            "grad_young",
+            plot_title = "Graduate Degrees or Higher, Young Adults, 2017",
+            subtitle_text = "Ages 25-34",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables PCT025, B15001")
+dev.off()
+
+png("../images/grad_young_trendline.png", 3000, 2400, res = 200)
+trend_gli(education_MSA,
+          "grad_young",
+          ylimits = these_ylimits,
+          plot_title = "Graduate Degrees or Higher, Young Adults",
+          subtitle_text = "Ages 25-34, 5-year rolling average",
+          caption_text = "Source: Greater Louisville Project
+                          ACS Tables PCT025, B15001")
+dev.off()
+glpgraphs:::add_arrow("../images/grad_young_trendline.png", "education", "kyrace")
+
+
+
+```
+

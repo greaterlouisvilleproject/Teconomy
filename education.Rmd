@@ -1,0 +1,208 @@
+---
+title: " "
+output: html_document
+---
+
+<style type="text/css">
+h1 {
+  font-weight: bold;
+}
+h1,h2 {
+  text-align: center;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Museo Sans 300";
+}
+body{
+  font-family: "Museo Sans 300";
+  font-size: 15px;
+}
+</style>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+The education section includes some JCPS data from the Kentucky Department of Education. JCPS data is not comparable to other peer cities, so the graphs included for those metrics compare JCPS to other Kentucky school districts.
+
+<br>
+
+# Early Care and Education
+
+<br>
+
+## Kindergarten Readiness {.tabset}
+
+### Trendline
+```{r}
+knitr::include_graphics("images/kready_trendline.png")
+```
+
+<br>
+
+## Children Ages 3 & 4 Enrolled in Preschool {.tabset}
+
+### Ranking
+```{r}
+knitr::include_graphics("images/enrolled_3_4_ranking.png")
+```
+
+<br>
+
+***
+
+<br>
+
+### Trendline
+```{r}
+knitr::include_graphics("images/enrolled_3_4_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+# K through 12 Success
+
+<br>
+
+## College and Career Readiness {.tabset}
+
+### Trendline
+```{r}
+knitr::include_graphics("images/ccr_trendline.png")
+```
+
+<br>
+
+## Graduation Rate {.tabset}
+
+### Trendline
+```{r}
+knitr::include_graphics("images/graduation_trendline.png")
+```
+
+<br>
+
+## NAEP Scores {.tabset}
+
+### Math
+```{r}
+knitr::include_graphics("images/naep_math_trendline.png")
+```
+
+### Reading
+```{r}
+knitr::include_graphics("images/naep_reading_trendline.png")
+```
+
+<br>
+
+## ACT Score {.tabset}
+
+### Trendline
+```{r}
+knitr::include_graphics("images/act_composite_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+# Postsecondary Eduation
+
+<br>
+
+## Bachelor's Degrees or Higher {.tabset}
+
+### Working-age (25-64) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/bach_plus_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/bach_plus_trendline.png")
+```
+
+### Young Adult (25-34) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/bach_plus_young_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/bach_plus_young_trendline.png")
+```
+
+<br>
+
+## Associate Degrees or Higher {.tabset}
+
+### Working-age (25-64) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/assoc_plus_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/assoc_plus_trendline.png")
+```
+
+### Young Adult (25-34) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/assoc_plus_young_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/assoc_plus_young_trendline.png")
+```
+
+<br>
+
+## Graduate Degrees {.tabset}
+
+### Working-age (25-64) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/grad_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/grad_trendline.png")
+```
+
+### Young Adult (25-34) {.tabset}
+
+#### Ranking
+```{r}
+knitr::include_graphics("images/grad_young_ranking.png")
+```
+
+#### Trendline
+```{r}
+knitr::include_graphics("images/grad_young_trendline.png")
+```
+
+
+
+
+
+
+
+

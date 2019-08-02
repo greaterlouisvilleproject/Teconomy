@@ -1,0 +1,19 @@
+name: "Teconomy Data"
+output_dir: "docs"
+exclude: ["generate_images.html", "generate_images.nb.html"]
+
+
+navbar:
+  title: "Teconomy Data"
+  left:
+    - text: "Welcome"
+      href: index.html
+    - text: "Education"
+      href: education.html
+
+output:
+  html_document:
+    theme: paper
+    toc: true
+    toc_float: true
+    toc_collapsed: false
