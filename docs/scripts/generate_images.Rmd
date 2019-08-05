@@ -31,6 +31,9 @@ setwd("../../../")
 showtext_auto()
 font_add("Museo Sans 300", "MuseoSans_300.otf")
 font_add("Museo Sans 300 Italic", "MuseoSans_300_Italic.otf")
+
+MSAs <- c("26900", "31140", "32820", "34980", "36540")
+
 ```
 
 ```{r ranking}
@@ -178,6 +181,7 @@ trend_gli <- function(df, var,
                   zero_start = F, raw_code = "", label_function = NULL, axis_function = NULL) {
   
   df$value <- df[[var]]
+  df$variable <- df$city
   
   # Filter data to peer set, race, sex, or other categories.
   # Create category names.
@@ -187,18 +191,27 @@ trend_gli <- function(df, var,
   if(xmax == "" | is.na(xmax)) xmax <- max(years_in_df(df, var))
   
   peer_mean <- df %>%
-    filter(city != "Louisville") %>%
+    filter(variable != "Louisville") %>%
     group_by(year) %>%
     summarise(value = mean(value))
   
-  peer_mean$city <- "Peer Mean"
+  peer_mean$variable <- "Peer Mean"
   
-  blanks <- data.frame(city = c(" ", "  "), stringsAsFactors = FALSE)
+  df %<>% bind_rows(peer_mean)
   
-  df %<>% bind_rows(peer_mean) %>% bind_rows(blanks)
+  output <- glptools:::tl_rolling_mean(df, xmin, xmax, rollmean, subtitle_text)
+  
+  df            <- output[["df"]]
+  xmin          <- output[["xmin"]]
+  xmax          <- output[["xmax"]]
+  subtitle_text <- output[["subtitle_text"]]
+  
+  blanks <- data.frame(variable = c(" ", "  "), stringsAsFactors = FALSE)
+  
+  df %<>% bind_rows(blanks)
 
   # Calculate break settings
-  output <- glptools:::tl_break_settings(df, xmin, xmax, 1)
+  output <- glptools:::tl_break_settings(df, xmin, xmax, rollmean)
 
   major_break_settings <- output[["major_break_settings"]]
   minor_break_settings <- output[["minor_break_settings"]]
@@ -206,7 +219,7 @@ trend_gli <- function(df, var,
   line_types <- c(" ", "Louisville", "Peer Mean", "  ", 
                   "Indianapolis", "Memphis", "Nashville", "Omaha")
   
-  df %<>% mutate(city = factor(city,
+  df %<>% mutate(variable = factor(variable,
                                levels = line_types,
                                labels = line_types,
                                ordered = TRUE))
@@ -214,10 +227,10 @@ trend_gli <- function(df, var,
   # Initial plot
   p <- ggplot(data = df,
               aes(x = year, y = value,
-                  group = city,
-                  colour = city,
+                  group = variable,
+                  colour = variable,
                   label = value,
-                  alpha = city))
+                  alpha = variable))
   
   txt_scale <- 1.5
 
@@ -301,8 +314,6 @@ trend_gli <- function(df, var,
 ```
 
 ```{r education}
-MSAs <- c("26900", "31140", "32820", "34980", "36540")
-
 education_MSA    %<>% filter(MSA %in% MSAs) %>% pull_peers()
 education_MSA_17 %<>% filter(MSA %in% MSAs) %>% pull_peers(add_info = T)
 
@@ -493,8 +504,99 @@ trend_gli(education_MSA,
                           ACS Tables PCT025, B15001")
 dev.off()
 glpgraphs:::add_arrow("../images/grad_young_trendline.png", "education", "kyrace")
+```
+
+```{r jobs}
+# MEDIAN EARNINGS
+png("../images/median_earnings_ranking.png", 3360, 2400, res = 200)
+ranking_gli(glpdata:::earnings_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+            "median_earnings",
+            y_title = "Dollars",
+            plot_title = "Median Earnings, 2017",
+            subtitle = "Adjusted for inflation and cost of living",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables P085, B20017")
+dev.off()
+
+png("../images/median_earnings_trendline.png", 3000, 2400, res = 200)
+trend_gli(glpdata:::earnings_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+          "median_earnings",
+          y_title = "Dollars",
+          plot_title = "Median Earnings",
+          rollmean = 3,
+          subtitle = "Adjusted for inflation and cost of living",
+          caption_text = "Source: Greater Louisville Project
+                            ACS Tables P085, B20017")
+dev.off()
 
 
+# HIGH WAGE
+png("../images/high_wage_ranking.png", 3360, 2400, res = 200)
+ranking_gli(glpdata:::high_wage_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+            "high_wage",
+            plot_title = "High Wage Occupations, 2017",
+            caption_text = "Source: Greater Louisville Project
+                            GLP analysis of ACS microdata from IPUMS-USA")
+dev.off()
+
+png("../images/high_wage_trendline.png", 3000, 2400, res = 200)
+trend_gli(glpdata:::high_wage_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+          "high_wage",
+          plot_title = "High Wage Occupations",
+          rollmean = 3,
+          caption_text = "Source: Greater Louisville Project
+                          GLP analysis of ACS microdata from IPUMS-USA")
+dev.off()
+
+
+# NET JOB CREATION
+png("../images/job_flow_ranking.png", 3360, 2400, res = 200)
+ranking_gli(glpdata:::job_flow_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+            "net_job_creation",
+            plot_title = "Net Job Creation, 2017",
+            caption_text = "Source: Greater Louisville Project
+                            GLP Analysis of Quarterly Workforce Indicators")
+dev.off()
+
+png("../images/job_flow_trendline.png", 3000, 2400, res = 200)
+trend_gli(glpdata:::job_flow_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+          "net_job_creation",
+          rollmean = 3,
+          plot_title = "Net Job Creation",
+          caption_text = "Source: Greater Louisville Project
+                          GLP Analysis of Quarterly Workforce Indicators")
+dev.off()
+
+
+# MEDIAN HOUSEHOLD INCOME
+png("../images/hh_income_ranking.png", 3360, 2400, res = 200)
+ranking_gli(glpdata:::hh_income_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+            "hh_income",
+            y_title = "Dollars",
+            plot_title = "Median Household Income, 2017",
+            subtitle = "Adjusted for inflation and cost of living",
+            caption_text = "Source: Greater Louisville Project
+                            ACS Tables P053, B19013")
+dev.off()
+
+png("../images/hh_income_trendline.png", 3000, 2400, res = 200)
+trend_gli(glpdata:::hh_income_msa %>% filter(MSA %in% MSAs) %>% pull_peers(),
+          "hh_income",
+          y_title = "Dollars",
+          plot_title = "Median Household Income",
+          subtitle = "Adjusted for inflation and cost of living",
+          caption_text = "Source: Greater Louisville Project
+                            ACS Tables P053, B19013")
+dev.off()
+
+
+# UNEMPLOYMENT
+
+# PER CAPITA PERSONAL INCOME
+
+```
+
+```{r qop}
 
 ```
 
