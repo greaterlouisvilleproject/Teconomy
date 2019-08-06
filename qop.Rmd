@@ -1,0 +1,60 @@
+---
+title: " "
+output: html_document
+---
+
+<style type="text/css">
+h1 {
+  font-weight: bold;
+}
+h1,h2 {
+  text-align: center;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Museo Sans 300";
+}
+body{
+  font-family: "Museo Sans 300";
+  font-size: 15px;
+}
+</style>
+
+# Natural environment
+
+## Air Pollution (incoming)
+
+# Built Environment
+
+## Commute Time
+## Driving Alone to Work
+## Severe Housing Problems
+## Homeownership
+## Severe Housing Burden
+## Housing Price Index
+## Net Migration Flow
+
+# Poverty & Inequality
+
+## Median Household Income
+## Child Poverty
+## Multidimensional Poverty
+## Income Inequality
+## Disconnected Youth
+## Food Deserts
+
+# Compassion
+## Social Associations
+## Racial Geography
+## Volunteerism
+
+# Safety
+## Violent Crime
+## Injury Deaths
+
+
+
+
+
+
+
+

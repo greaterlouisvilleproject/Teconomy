@@ -1,0 +1,129 @@
+---
+title: " "
+output: html_document
+---
+
+<style type="text/css">
+h1 {
+  font-weight: bold;
+}
+h1,h2 {
+  text-align: center;
+}
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Museo Sans 300";
+}
+body{
+  font-family: "Museo Sans 300";
+  font-size: 15px;
+}
+</style>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+## Median Earnings {.tabset}
+
+### Ranking
+```{r}
+knitr::include_graphics("images/median_earnings_ranking.png")
+```
+
+<br>
+
+***
+
+<br>
+
+### Trendline
+```{r}
+knitr::include_graphics("images/median_earnings_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+
+## Median Household Income {.tabset}
+
+### Ranking
+```{r}
+knitr::include_graphics("images/hh_income_ranking.png")
+```
+
+<br>
+
+***
+
+<br>
+
+### Trendline
+```{r}
+knitr::include_graphics("images/hh_income_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+## High Wage Occupations {.tabset}
+
+### Ranking
+```{r}
+knitr::include_graphics("images/high_wage_ranking.png")
+```
+
+<br>
+
+***
+
+<br>
+
+### Trendline
+```{r}
+knitr::include_graphics("images/high_wage_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+
+## Net Job Creation {.tabset}
+
+### Ranking
+```{r}
+knitr::include_graphics("images/job_flow_ranking.png")
+```
+
+<br>
+
+***
+
+<br>
+
+### Trendline
+```{r}
+knitr::include_graphics("images/job_flow_trendline.png")
+```
+
+<br>
+
+***
+
+<br>
+
+## Unemployment (incoming)
+
+
+
+
+
