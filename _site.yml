@@ -10,6 +10,10 @@ navbar:
       href: index.html
     - text: "Education"
       href: education.html
+    - text: "Jobs"
+      href: jobs.html
+    - text: "Quality of Place (incoming)"
+      href: qop.html
 
 output:
   html_document:
